@@ -1,5 +1,10 @@
 module EventMachine
   module WebSocket
+    
+    def WebSocket.trim(data, max_len=100)
+      data[0..max_len]+( data.length > max_len ? ' . . .' : '' )
+    end
+    
     class Connection < EventMachine::Connection
       include Debugger
 
@@ -72,7 +77,7 @@ module EventMachine
       end
 
       def receive_data(data)
-        debug [:receive_data, data]
+        debug [:receive_data, WebSocket.trim(data)]
 
         if @handler
           @handler.receive_data(data)

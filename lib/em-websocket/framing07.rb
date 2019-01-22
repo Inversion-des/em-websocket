@@ -33,7 +33,7 @@ module EventMachine
           when 127 # Length defined by 8 bytes
             # Check buffer size
             if @data.getbyte(pointer+8-1) == nil
-              debug [:buffer_incomplete, @data]
+              debug [:buffer_incomplete, WebSocket.trim(@data)]
               error = true
               next
             end
@@ -46,7 +46,7 @@ module EventMachine
           when 126 # Length defined by 2 bytes
             # Check buffer size
             if @data.getbyte(pointer+2-1) == nil
-              debug [:buffer_incomplete, @data]
+              debug [:buffer_incomplete, WebSocket.trim(@data)]
               error = true
               next
             end
@@ -68,7 +68,7 @@ module EventMachine
 
           # Check buffer size
           if @data.getbyte(frame_length - 1) == nil
-            debug [:buffer_incomplete, @data]
+            debug [:buffer_incomplete, WebSocket.trim(@data)]
             error = true
             next
           end
@@ -80,6 +80,7 @@ module EventMachine
           # Read application data (unmasked if required)
           @data.read_mask if mask
           pointer += 4 if mask
+          debug ['payload_length', payload_length]
           application_data = @data.getbytes(pointer, payload_length)
           pointer += payload_length
           @data.unset_mask if mask
@@ -105,7 +106,7 @@ module EventMachine
           end
 
           if !fin
-            debug [:moreframe, frame_type, application_data]
+            debug [:moreframe, frame_type, WebSocket.trim(application_data)]
             @application_data_buffer << application_data
             # The message type is passed in the first frame
             @frame_type ||= frame_type
@@ -129,7 +130,7 @@ module EventMachine
       end
       
       def send_frame(frame_type, application_data)
-        debug [:sending_frame, frame_type, application_data]
+        debug [:sending_frame, frame_type, WebSocket.trim(application_data)]
 
         if @state == :closing && data_frame?(frame_type)
           raise WebSocketError, "Cannot send data frame since connection is closing"
@@ -202,6 +203,7 @@ module EventMachine
         end
 
         msg.replace @inflate.inflate(msg) + @inflate.inflate([0x00, 0x00, 0xff, 0xff].pack('C*'))
+        debug ['unpacked data', WebSocket.trim(msg)]
         debug ['unpacked data length', msg.length]
       end
       

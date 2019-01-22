@@ -43,6 +43,7 @@ module EventMachine
       end
 
       def receive_data(data)
+        debug ['receive_data data.length', data.length]
         @data << data
         process_data
       rescue WSProtocolError => e

@@ -2,7 +2,7 @@ module EventMachine
   module WebSocket
     module MessageProcessor06
       def message(message_type, extension_data, application_data)
-        debug [:message_received, message_type, application_data]
+        debug [:message_received, message_type, WebSocket.trim(application_data)]
         
         case message_type
         when :close
